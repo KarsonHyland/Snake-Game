@@ -1,0 +1,209 @@
+######################################################
+# Draw Begining Fruit macro
+######################################################
+
+.macro	startFruit(%int1, %int2)
+	#syscall for random int with a upper bound
+	li $v0, 42
+	#upper bound 61 (0 <= $a0 < $a1)
+	li $a1, 62
+	syscall
+	#increment the X position so it doesnt draw on a border
+	addiu $a0, $a0, 1
+	#store X position
+	sw $a0, %int1
+	syscall
+	#increment the Y position so it doesnt draw on a border
+	addiu $a0, $a0, 1
+	#store Y position
+	sw $a0, %int2
+.end_macro
+
+.macro	BlackScreen(%int1,%int2)
+	lw $a0, %int1
+	lw $a1, %int2
+	mul $a2, $a0, $a0 #total number of pixels on screen
+	mul $a2, $a2, 4 #align addresses
+	add $a2, $a2, $gp #add base of gp
+	add $a0, $gp, $zero #loop counter
+.end_macro
+
+ # x, y, screenwIDTH, COLOR
+.macro	InitialSnake(%int1, %int2, %int3, %int4)
+	#draw snake head
+	lw $a0, %int1 #load x coordinate
+	lw $a1, %int2 #load y coordinate
+	lw $v0, %int3 	#Store screen width into $v0
+	mul $v0, $v0, $a1	#multiply by y position
+	add $v0, $v0, $a0	#add the x position
+	mul $v0, $v0, 4		#multiply by 4
+	add $v0, $v0, $gp	#add global pointerfrom bitmap display 
+	#get screen coordinates
+	move $a0, $v0 #copy coordinates to $a0
+	lw $a1, %int4 #store color into $a1
+	sw $a1, ($a0)	#draw color at pixel
+	
+	#draw middle portion
+	lw $a0, %int1 #load x coordinate
+	lw $a1, %int2 #load y coordinate
+	add $a1, $a1, 1
+	lw $v0, %int3 	#Store screen width into $v0
+	mul $v0, $v0, $a1	#multiply by y position
+	add $v0, $v0, $a0	#add the x position
+	mul $v0, $v0, 4		#multiply by 4
+	add $v0, $v0, $gp	#add global pointerfrom bitmap display 
+	#get screen coordinates
+	move $a0, $v0 #copy coordinates to $a0
+	lw $a1, %int4 #store color into $a1
+	sw $a1, ($a0)	#draw color at pixel
+	
+	#TEST 8 PIXELS
+	lw $a0, %int1 #load x coordinate
+	lw $a1, %int2 #load y coordinate
+	add $a1, $a1, 2
+	lw $v0, %int3 	#Store screen width into $v0
+	mul $v0, $v0, $a1	#multiply by y position
+	add $v0, $v0, $a0	#add the x position
+	mul $v0, $v0, 4		#multiply by 4
+	add $v0, $v0, $gp	#add global pointerfrom bitmap display 
+	#get screen coordinates
+	move $a0, $v0 #copy coordinates to $a0
+	lw $a1, %int4 #store color into $a1
+	sw $a1, ($a0)	#draw color at pixel
+	
+	lw $a0, %int1 #load x coordinate
+	lw $a1, %int2 #load y coordinate
+	add $a1, $a1, 3
+	lw $v0, %int3 	#Store screen width into $v0
+	mul $v0, $v0, $a1	#multiply by y position
+	add $v0, $v0, $a0	#add the x position
+	mul $v0, $v0, 4		#multiply by 4
+	add $v0, $v0, $gp	#add global pointerfrom bitmap display 
+	#get screen coordinates
+	move $a0, $v0 #copy coordinates to $a0
+	lw $a1, %int4 #store color into $a1
+	sw $a1, ($a0)	#draw color at pixel
+	
+	lw $a0, %int1 #load x coordinate
+	lw $a1, %int2 #load y coordinate
+	add $a1, $a1, 4
+	lw $v0, %int3 	#Store screen width into $v0
+	mul $v0, $v0, $a1	#multiply by y position
+	add $v0, $v0, $a0	#add the x position
+	mul $v0, $v0, 4		#multiply by 4
+	add $v0, $v0, $gp	#add global pointerfrom bitmap display 
+	#get screen coordinates
+	move $a0, $v0 #copy coordinates to $a0
+	lw $a1, %int4 #store color into $a1
+	sw $a1, ($a0)	#draw color at pixel
+	
+	lw $a0, %int1 #load x coordinate
+	lw $a1, %int2 #load y coordinate
+	add $a1, $a1, 5
+	lw $v0, %int3 	#Store screen width into $v0
+	mul $v0, $v0, $a1	#multiply by y position
+	add $v0, $v0, $a0	#add the x position
+	mul $v0, $v0, 4		#multiply by 4
+	add $v0, $v0, $gp	#add global pointerfrom bitmap display 
+	#get screen coordinates
+	move $a0, $v0 #copy coordinates to $a0
+	lw $a1, %int4 #store color into $a1
+	sw $a1, ($a0)	#draw color at pixel
+	
+	lw $a0, %int1 #load x coordinate
+	lw $a1, %int2 #load y coordinate
+	add $a1, $a1, 6
+	lw $v0, %int3 	#Store screen width into $v0
+	mul $v0, $v0, $a1	#multiply by y position
+	add $v0, $v0, $a0	#add the x position
+	mul $v0, $v0, 4		#multiply by 4
+	add $v0, $v0, $gp	#add global pointerfrom bitmap display 
+	#get screen coordinates
+	move $a0, $v0 #copy coordinates to $a0
+	lw $a1, %int4 #store color into $a1
+	sw $a1, ($a0)	#draw color at pixel
+	
+	#draw snake tail
+	lw $a0, %int1 #load x coordinate
+	lw $t1, %int2
+	add $a1, $t1, 6
+	lw $v0, %int3 	#Store screen width into $v0
+	mul $v0, $v0, $a1	#multiply by y position
+	add $v0, $v0, $a0	#add the x position
+	mul $v0, $v0, 4		#multiply by 4
+	add $v0, $v0, $gp	#add global pointerfrom bitmap display
+	#get screen coordinates
+	move $a0, $v0 #copy coordinates to $a0
+	lw $a1, %int4 #store color into $a1
+	sw $a1, ($a0)	#draw color at pixel
+.end_macro
+
+.macro	border(%int3, %int2)
+	li $t1, 0	#load Y coordinate for the left border
+	LeftLoop:
+	move $a1, $t1	#move y coordinate into $a1
+	li $a0, 0	# load x direction to 0, doesnt change
+	lw $v0, %int3 	#Store screen width into $v0
+	mul $v0, $v0, $a1	#multiply by y position
+	add $v0, $v0, $a0	#add the x position
+	mul $v0, $v0, 4		#multiply by 4
+	add $v0, $v0, $gp	#add global pointerfrom bitmap display
+	#get screen coordinates
+	move $a0, $v0	# move screen coordinates into $a0
+	lw $a1, %int2	#move color code into $a1
+	sw $a1, ($a0)	#draw the color at the screen location
+	add $t1, $t1, 1	#increment y coordinate
+	
+	bne $t1, 64, LeftLoop	#loop through to draw entire left border
+	
+	li $t1, 0	#load Y coordinate for right border
+	RightLoop:
+	move $a1, $t1	#move y coordinate into $a1
+	li $a0, 63	#set x coordinate to 63 (right side of screen)
+	lw $v0, %int3 	#Store screen width into $v0
+	mul $v0, $v0, $a1	#multiply by y position
+	add $v0, $v0, $a0	#add the x position
+	mul $v0, $v0, 4		#multiply by 4
+	add $v0, $v0, $gp	#add global pointerfrom bitmap display
+	#convert to screen coordinates
+	move $a0, $v0	# move coordinates into $a0
+	lw $a1, %int2	#move color data into $a1
+	sw $a1, ($a0)	#draw color at screen coordinates
+	add $t1, $t1, 1	#increment y coordinate
+	
+	bne $t1, 64, RightLoop	#loop through to draw entire right border
+	
+	li $t1, 0	#load X coordinate for top border
+	TopLoop:
+	move $a0, $t1	# move x coordinate into $a0
+	li $a1, 0	# set y coordinate to zero for top of screen
+	lw $v0, %int3 	#Store screen width into $v0
+	mul $v0, $v0, $a1	#multiply by y position
+	add $v0, $v0, $a0	#add the x position
+	mul $v0, $v0, 4		#multiply by 4
+	add $v0, $v0, $gp	#add global pointerfrom bitmap display
+	#get screen coordinate
+	move $a0, $v0	#  move screen coordinates to $a0
+	lw $a1, %int2	# store color data to $a1
+	sw $a1, ($a0)	#draw color at screen coordinates
+	add $t1, $t1, 1 #increment X position
+	
+	bne $t1, 64, TopLoop #loop through to draw entire top border
+	
+	li $t1, 0	#load X coordinate for bottom border
+	BottomLoop:
+	move $a0, $t1	# move x coordinate to $a0
+	li $a1, 63	# load Y coordinate for bottom of screen
+	lw $v0, %int3 	#Store screen width into $v0
+	mul $v0, $v0, $a1	#multiply by y position
+	add $v0, $v0, $a0	#add the x position
+	mul $v0, $v0, 4		#multiply by 4
+	add $v0, $v0, $gp	#add global pointerfrom bitmap display
+	#get screen coordinates
+	move $a0, $v0	#move screen coordinates to $a0
+	lw $a1, %int2	#put color data into $a1
+	sw $a1, ($a0)	#draw color at screen position
+	add $t1, $t1, 1	#increment X coordinate
+	
+	bne $t1, 64, BottomLoop	# loop through to draw entire bottom border
+.end_macro

@@ -1,0 +1,422 @@
+#Karson Hyland
+#KJH190000
+#2340.04W
+# Read the MIPS project text file before running the program
+# set bit width and height to 8
+# set screen width and height  to 512
+# choose the $gp
+# move with W, A, S, D
+#you can pause the game with spacebar and  resume by clicking the direction you want to move
+
+.include "SnakeStartDrawing"
+.include "Checks"
+
+.data
+
+#Game Core information
+
+#Screen 
+width: 	.word 64
+height: 	.word 64
+
+#Colors
+color: 	.word	0xFFFF00	 # yellow and color of the snake
+background:.word	0xFF00FF	 # makes the background magenta
+border:    .word	0x00FFFF	 # cyan and the color of the border	
+foodColor: 	.word	0xFF0000	 #makes the food red
+
+#game speed
+speed:	.word 50
+
+#snake cordinates and where it is  going
+frontX: 	.word 31
+frontY:	.word 31
+backX:	.word 31
+backY:	.word 37
+direction:	.word 119 #initially moving up
+backDirection:	.word 119
+
+directionChangeArray:	.word 0:100
+#array for the tail
+newArray:	.word 0:100
+#keeps the end of the array
+arrayPosition:			.word 0
+locationInArray:		.word 0
+
+#Food Information
+foodPositionX: .word
+foodPositionY: .word
+
+.text
+
+main:
+# Fill Screen to Black, for reset
+	BlackScreen(width, background)
+Loop:
+	beq $a0, $a2, drawBegining
+	sw $a1, 0($a0) #store color
+	addiu $a0, $a0, 4 #increment counter
+	j Loop
+
+#checks the input
+InputCheck:
+	lw $a0, speed
+	li $v0, 32 #sleep
+	syscall
+
+	#get the coordinates for direction change
+	lw $a0, frontX
+	lw $a1, frontY
+	coordinates(width)
+	add $a2, $v0, $zero
+
+	#gets the input
+	Input()
+	beq  $a1, 32, Pause
+	beqz $a3, SelectDrawDirection #no input = change in same direction
+	j DirectionCz
+	
+DirectionCz:	
+	lw $a0, direction # load current direction into #a0
+	sw $a1, direction	#store the new direction if valid
+	DirectionCheck(arrayPosition, directionChangeArray, newArray)# check the direction
+	add $t3, $v1, $zero	
+	beq $a1, 119, DrawUp
+	beq  $a1, 115, DrawDown
+	beq  $a1, 97, DrawLeft
+	beq  $a1, 100, DrawRight
+	#if no input or wrong input try input again
+	j InputCheck
+
+SelectDrawDirection:
+	beq $a1, 119, DrawUp
+	beq  $a1, 115, DrawDown
+	beq  $a1, 97, DrawLeft
+	beq  $a1, 100, DrawRight
+	j InputCheck
+	
+DrawUp:
+	#check for collision
+	lw $a0, frontX
+	lw $a1, frontY
+	lw $a2, direction
+	#check above the snake
+	addiu $a1, $a1, -1
+	coordinates(width)
+	LostCheck(color, border)
+	#draw the new position of the head
+	lw $t9, frontX
+	lw $t0, frontY
+	addiu $t0, $t0, -1
+	add $a0, $t9, $zero
+	add $a1, $t0, $zero
+	coordinates(width)
+	add $a0, $v0, $zero
+	lw $a1, color
+	sw $a1, ($a0)
+
+	sw  $t0, frontY
+	sw  $t9, frontX
+	#tail
+	lw $t1, backDirection
+	#which way is it going
+	beq  $t1, 119, MoveUp
+	beq  $t1, 115, MoveDown
+	beq  $t1, 97, MoveLeft
+	beq  $t1, 100, MoveRight
+	
+DrawDown:
+	#check for collision
+	lw $a0, frontX
+	lw $a1, frontY
+	lw $a2, direction	
+	#look below the snake 
+	addiu $a1, $a1, 1
+	coordinates(width)
+	LostCheck(color, border)
+	#draw head in new spot
+	lw $t9, frontX
+	lw $t0, frontY
+	addiu $t0, $t0, 1
+	add $a0, $t9, $zero
+	add $a1, $t0, $zero
+	coordinates(width)
+	add $a0, $v0, $zero
+	lw $a1, color
+	sw $a1, ($a0)
+	
+	sw  $t0, frontY
+	sw  $t9, frontX	
+	#tail
+	lw $t1, backDirection
+	#which way is it going
+	beq  $t1, 119, MoveUp
+	beq  $t1, 115, MoveDown
+	beq  $t1, 97, MoveLeft
+	beq  $t1, 100, MoveRight
+
+DrawLeft:
+	#check for collision
+	lw $a0, frontX
+	lw $a1, frontY
+	lw $a2, direction
+	#look in front of the snake
+	addiu $a0, $a0, -1
+	coordinates(width)
+	LostCheck(color, border)
+	#draw head
+	lw $t9, frontX
+	lw $t0, frontY
+	addiu $t9, $t9, -1
+	add $a0, $t9, $zero
+	add $a1, $t0, $zero
+	coordinates(width)
+	add $a0, $v0, $zero
+	lw $a1, color
+	sw $a1, ($a0)
+	
+	sw  $t9, frontX	
+	#tail
+	lw $t1, backDirection
+	#which way is it going
+	beq  $t1, 119, MoveUp
+	beq  $t1, 115, MoveDown
+	beq  $t1, 97, MoveLeft
+	beq  $t1, 100, MoveRight
+
+DrawRight:
+	#check for collision
+	lw $a0, frontX
+	lw $a1, frontY
+	lw $a2, direction	
+	#look in front
+	addiu $a0, $a0, 1
+	coordinates(width)
+	LostCheck(color, border)
+	#draw head
+	lw $t9, frontX
+	lw $t0, frontY
+	addiu $t9, $t9, 1
+	add $a0, $t9, $zero
+	add $a1, $t0, $zero
+	coordinates(width)
+	add $a0, $v0, $zero
+	lw $a1, color
+	sw $a1, ($a0)
+	
+	sw  $t9, frontX
+	#tail
+	lw $t1, backDirection
+	#which way is it going
+	beq  $t1, 119, MoveUp
+	beq  $t1, 115, MoveDown
+	beq  $t1, 97, MoveLeft
+	beq  $t1, 100, MoveRight			
+
+# tails position			
+MoveUp:
+	#get the screen coordinates
+	lw $t7, locationInArray
+	la $t9, directionChangeArray 
+	add $t9, $t9, $t7
+	lw $t8, 0($t9)
+	lw $a0, backX  #get snake tail position
+	lw $a1, backY
+	#if the index is out of bounds, set back to zero
+	beq $s1, 1, IncreaseUp
+	addiu $a1, $a1, -1 #change tail position
+	sw $a1, backY
+	
+IncreaseUp:
+	li $s1, 0 #set to false
+	coordinates(width)
+	add $a0, $v0, $zero
+	bne $t8, $a0, TailUp #change direction
+	la $t2, newArray  #update direction
+	add $t2, $t2, $t7
+	lw $t8, 0($t2)
+	sw $t8, backDirection
+	addiu $t7,$t7,4
+	#if the index is out of bounds, set back to zero
+	bne $t7, 396, LocationUp
+	li $t7, 0
+LocationUp:
+	sw $t7, locationInArray 
+TailUp:
+	lw $a1, color
+	sw $a1, ($a0)
+	#erase behind the snake
+	lw $t9, backX
+	lw $t0, backY
+	addiu $t0, $t0, 1
+	add $a0, $t9, $zero
+	add $a1, $t0, $zero
+	coordinates(width)
+	add $a0, $v0, $zero
+	lw $a1, background
+	sw $a1, ($a0)	
+	j DrawFood  #finished updating snake, update food
+
+MoveDown:
+	#get the screen coordinates of the next direction change
+	lw $t7, locationInArray
+	la $t9, directionChangeArray
+	add $t9, $t9, $t7
+	lw $t8, 0($t9)
+	lw $a0, backX  #get snake tail position
+	lw $a1, backY
+	beq $s1, 1, LengthDown
+	addiu $a1, $a1, 1 #change tail position
+	sw $a1, backY
+	
+LengthDown:
+	li $s1, 0 #set false
+	coordinates(width)
+	add $a0, $v0, $zero
+	bne $t8, $a0, TailDown
+	la $t2, newArray
+	add $t2, $t2, $t7
+	lw $t8, 0($t2)
+	sw $t8, backDirection
+	addiu $t7,$t7,4
+	#if the index is out of bounds, set back to zero
+	bne $t7, 396, LocationDown
+	li $t7, 0
+LocationDown:
+	sw $t7, locationInArray  
+TailDown:	
+	lw $a1, color
+	sw $a1, ($a0)	
+	#erase behind the snake
+	lw $t9, backX
+	lw $t0, backY
+	addiu $t0, $t0, -1
+	add $a0, $t9, $zero
+	add $a1, $t0, $zero
+	coordinates(width)
+	add $a0, $v0, $zero
+	lw $a1, background
+	sw $a1, ($a0)	
+	j DrawFood #finished updating snake, update food
+
+MoveLeft:
+	#update the tail position when moving left
+	lw $t7, locationInArray
+	la $t9, directionChangeArray 
+	add $t9, $t9, $t7
+	lw $t8, 0($t9)
+	lw $a0, backX #get snake tail position
+	lw $a1, backY
+	beq $s1, 1, LengthLeft
+	addiu $a0, $a0, -1
+	sw $a0, backX
+	
+LengthLeft:
+	li $s1, 0 #set false
+	coordinates(width)
+	add $a0, $v0, $zero
+	bne $t8, $a0, TailLeft 
+	la $t2, newArray 
+	add $t2, $t2, $t7
+	lw $t8, 0($t2)
+	sw $t8, backDirection
+	addiu $t7,$t7,4
+	#if the index is out of bounds, set back to zero
+	bne $t7, 396, LocationLeft
+	li $t7, 0
+LocationLeft:
+	sw $t7, locationInArray  
+TailLeft:	
+	lw $a1, color
+	sw $a1, ($a0)	
+	#erase behind the snake
+	lw $t9, backX
+	lw $t0, backY
+	addiu $t9, $t9, 1
+	add $a0, $t9, $zero
+	add $a1, $t0, $zero
+	coordinates(width)
+	add $a0, $v0, $zero
+	lw $a1, background
+	sw $a1, ($a0)	
+	j DrawFood  #finished updating snake, update food
+
+MoveRight:
+	#get the screen coordinates of the next direction change
+	lw $t7, locationInArray
+	la $t9, directionChangeArray
+	add $t9, $t9, $t7
+	lw $t8, 0($t9)
+	#get current tail position
+	lw $a0, backX
+	lw $a1, backY
+	beq $s1, 1, LengthRight
+	addiu $a0, $a0, 1
+	sw $a0, backX
+	
+LengthRight:
+	li $s1, 0 #set false
+	coordinates(width)
+	add $a0, $v0, $zero
+	bne $t8, $a0, TailRight
+	la $t2, newArray
+	#move index
+	add $t2, $t2, $t7
+	lw $t8, 0($t2)
+	sw $t8, backDirection
+	#increment array
+	addiu $t7,$t7,4
+	#if the index is out of bounds, set back to zero
+	bne $t7, 396, LocationRight
+	li $t7, 0
+LocationRight:
+	sw $t7, locationInArray  
+TailRight:	
+
+	lw $a1, color
+	sw $a1, ($a0)	
+	#erase behind the snake
+	lw $t9, backX
+	lw $t0, backY
+	addiu $t9, $t9, -1
+	add $a0, $t9, $zero
+	add $a1, $t0, $zero
+	coordinates(width)
+	add $a0, $v0, $zero
+	lw $a1, background
+	sw $a1, ($a0)
+	j DrawFood  #finished updating snake, update food
+	
+DrawFood:
+	#check the collision with the food and move it if it collided
+	lw $a0, frontX
+	lw $a1, frontY
+	FoodCheck(foodPositionX, foodPositionY)
+	add $s1, $v0, $zero
+	beq $s1, 1, SpawnFood #if food was eaten, add length
+
+	#draw the food
+	lw $a0, foodPositionX
+	lw $a1, foodPositionY
+	coordinates(width)
+	add $a0, $v0, $zero
+	lw $a1, foodColor
+	sw $a1, ($a0)
+	j InputCheck
+
+# Draws the initial set up for the game before you click a key
+drawBegining:
+	InitialSnake(frontX, frontY, width, color)
+	makeBorder(width, border)
+SpawnFood:
+	startFood(foodPositionX, foodPositionX)
+	j InputCheck
+
+Pause:
+	Input()
+	j InputCheck
+				
+Exit:   
+	#end program
+	li $v0, 10
+	syscall

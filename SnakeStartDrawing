@@ -1,0 +1,207 @@
+
+# makes the fruit
+.macro	startFood(%int1, %int2)
+	#syscall for random int
+	li $v0, 42
+	#upper bound 61
+	li $a1, 62
+	syscall
+	#increment x so it doesnt draw on the border
+	addiu $a0, $a0, 1
+	sw $a0, %int1
+	syscall
+	#increment y so it doesnt draw on a border
+	addiu $a0, $a0, 1
+	sw $a0, %int2
+.end_macro
+
+# sets the screen to black
+.macro	BlackScreen(%int1,%int2)
+	lw $a0, %int1
+	lw $a1, %int2
+	mul $a2, $a0, $a0 #total number of pixels on screen
+	mul $a2, $a2, 4 #align addresses
+	add $a2, $a2, $gp #add base of gp
+	add $a0, $gp, $zero #loop counter
+.end_macro
+
+# Draws the initial snake 
+# x, y, screenwIDTH, COLOR
+.macro	InitialSnake(%int1, %int2, %int3, %int4)
+	#draw snake head
+	lw $a0, %int1 #load x coordinate
+	lw $a1, %int2 #load y coordinate
+	lw $v1, %int3 	#COORDINATES FROM CHECKS
+	mul $v1, $v1, $a1	
+	add $v1, $v1, $a0	
+	mul $v1, $v1, 4	
+	add $v1, $v1, $gp	
+
+	move $a0, $v1 #copy coordinates to $a0
+	lw $a1, %int4 #store color into $a1
+	sw $a1, ($a0)	#draw color
+	
+	#draw middle portion
+	lw $a0, %int1 #load x coordinate
+	lw $a1, %int2 #load y coordinate
+	add $a1, $a1, 1
+	lw $v1, %int3 	#COORDINATES FROM CHECKS
+	mul $v1, $v1, $a1	
+	add $v1, $v1, $a0	
+	mul $v1, $v1, 4	
+	add $v1, $v1, $gp	
+
+	move $a0, $v1 #copy coordinates to $a0
+	lw $a1, %int4 #store color into $a1
+	sw $a1, ($a0)	#draw color
+	
+	lw $a0, %int1 #load x
+	lw $a1, %int2 #load y
+	add $a1, $a1, 2
+	lw $v1, %int3 	#COORDINATES FROM CHECKS
+	mul $v1, $v1, $a1	
+	add $v1, $v1, $a0	
+	mul $v1, $v1, 4	
+	add $v1, $v1, $gp	
+
+	move $a0, $v1 #copy coordinates to $a0
+	lw $a1, %int4 #store color into $a1
+	sw $a1, ($a0)	#draw color
+	
+	lw $a0, %int1 #load x
+	lw $a1, %int2 #load y
+	add $a1, $a1, 3
+	lw $v1, %int3 	#COORDINATES FROM CHECKS
+	mul $v1, $v1, $a1	
+	add $v1, $v1, $a0	
+	mul $v1, $v1, 4	
+	add $v1, $v1, $gp	
+
+	move $a0, $v1 #copy coordinates to $a0
+	lw $a1, %int4 #store color into $a1
+	sw $a1, ($a0)	#draw color
+	
+	lw $a0, %int1 #load x
+	lw $a1, %int2 #load y
+	add $a1, $a1, 4
+	lw $v1, %int3 	#COORDINATES FROM CHECKS
+	mul $v1, $v1, $a1	
+	add $v1, $v1, $a0	
+	mul $v1, $v1, 4	
+	add $v1, $v1, $gp	
+
+	move $a0, $v1 #copy coordinates to $a0
+	lw $a1, %int4 #store color into $a1
+	sw $a1, ($a0)	#draw color
+	
+	lw $a0, %int1 #load x
+	lw $a1, %int2 #load y
+	add $a1, $a1, 5
+	lw $v1, %int3 	#COORDINATES FROM CHECKS
+	mul $v1, $v1, $a1	
+	add $v1, $v1, $a0	
+	mul $v1, $v1, 4	
+	add $v1, $v1, $gp	
+
+	move $a0, $v1 #copy coordinates to $a0
+	lw $a1, %int4 #store color into $a1
+	sw $a1, ($a0)	#draw color
+	
+	lw $a0, %int1 #load x
+	lw $a1, %int2 #load y
+	add $a1, $a1, 6
+	lw $v1, %int3 	#COORDINATES FROM CHECKS
+	mul $v1, $v1, $a1	
+	add $v1, $v1, $a0	
+	mul $v1, $v1, 4	
+	add $v1, $v1, $gp	
+
+	move $a0, $v1 #copy coordinates to $a0
+	lw $a1, %int4 #store color into $a1
+	sw $a1, ($a0)	#draw color
+	
+
+	lw $a0, %int1 #load x
+	lw $t1, %int2
+	add $a1, $t1, 6
+	lw $v1, %int3 	#COORDINATES FROM CHECKS
+	mul $v1, $v1, $a1	
+	add $v1, $v1, $a0	
+	mul $v1, $v1, 4		
+	add $v1, $v1, $gp	
+
+	move $a0, $v1 #copy coordinates to $a0
+	lw $a1, %int4 #store color into $a1
+	sw $a1, ($a0)	#draw color
+.end_macro
+
+# Draws the border around the  game
+.macro	makeBorder(%int3, %int2)
+	li $t1, 0	#load Y coordinate for the left border
+	LeftLoop:
+	move $a1, $t1	#move y coordinate into $a1
+	li $a0, 0	# lmake x 0 so it doesnt change
+	lw $v1, %int3 	#COORDINATES FROM CHECKS
+	mul $v1, $v1, $a1	
+	add $v1, $v1, $a0	
+	mul $v1, $v1, 4	
+	add $v1, $v1, $gp	
+
+	move $a0, $v1	# move screen coordinates into $a0
+	lw $a1, %int2	#move color code into $a1
+	sw $a1, ($a0)	#draw the color at the screen location
+	add $t1, $t1, 1	#increment y coordinate
+	
+	bne $t1, 64, LeftLoop	#loop through to draw entire left border
+	
+	li $t1, 0	#load Y for right border
+	RightLoop:
+	move $a1, $t1	#move y coordinate into $a1
+	li $a0, 63	#set x to the right of the screen
+	lw $v1, %int3 	#COORDINATES FROM CHECKS
+	mul $v1, $v1, $a1	
+	add $v1, $v1, $a0	
+	mul $v1, $v1, 4	
+	add $v1, $v1, $gp	
+
+	move $a0, $v1	# move coordinates into $a0
+	lw $a1, %int2	#move color data into $a1
+	sw $a1, ($a0)	#draw color at screen coordinates
+	add $t1, $t1, 1	#increment y coordinate
+	
+	bne $t1, 64, RightLoop	#loop through to draw entire right border
+	
+	li $t1, 0	#load x for top
+	TopLoop:
+	move $a0, $t1	# move x coordinate into $a0
+	li $a1, 0	# set y coordinate to zero
+	lw $v1, %int3 	#COORDINATES FROM CHECKS
+	mul $v1, $v1, $a1
+	add $v1, $v1, $a0	
+	mul $v1, $v1, 4		
+	add $v1, $v1, $gp	
+
+	move $a0, $v1	#  move screen coordinates to $a0
+	lw $a1, %int2	# store color data to $a1
+	sw $a1, ($a0)	#draw color at screen coordinates
+	add $t1, $t1, 1 #increment X position
+	
+	bne $t1, 64, TopLoop #loop through to draw entire top border
+	
+	li $t1, 0	#load x for bottom
+	BottomLoop:
+	move $a0, $t1	# move x coordinate to $a0
+	li $a1, 63	# load Y coordinate for bottom of screen
+	lw $v1, %int3 	#COORDINATES FROM CHECKS
+	mul $v1, $v1, $a1	
+	add $v1, $v1, $a0	
+	mul $v1, $v1, 4	
+	add $v1, $v1, $gp	
+
+	move $a0, $v1	#move screen coordinates to $a0
+	lw $a1, %int2	#put color data into $a1
+	sw $a1, ($a0)	#draw color at screen position
+	add $t1, $t1, 1	#increment X coordinate
+	
+	bne $t1, 64, BottomLoop	# loop through to draw entire bottom border
+.end_macro
